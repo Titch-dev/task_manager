@@ -1,5 +1,20 @@
 from datetime import datetime
 import re
+### Templates ###
+from templates import templates as t
+
+
+def display_formatter(template: str, *dynamic_vars: str | int):
+    """Function to dynamically enter variables to display strings
+
+    Parameters:
+        template: string to format with variables
+        *dynamic_vars: strings and integers to format template
+
+    Returns:
+        Concatenated string
+    """
+    return template.format(*dynamic_vars)
 
 
 def return_to_menu() -> str:
@@ -85,14 +100,14 @@ def date_validator(start_date):
             try:
                 valid_date = datetime(int(year), int(month), int(day)).strftime('%d %b %Y')
                 if start_date > valid_date:
-                    print('Please set the due date in the future')
+                    print(display_formatter(t.ERROR_MESSAGE, 'Please set the due date in the future'))
                     continue
                 else:
                     return valid_date
             except ValueError as e:
                 print(e)  # ValueError message for specific date time exceptions
         else:
-            print('Not a valid date input, please ensure spaces are included')
+            print(display_formatter(t.ERROR_MESSAGE, 'Not a valid date input, please ensure spaces are included'))
 
 
 def print_task(task: str) -> None:
@@ -102,15 +117,7 @@ def print_task(task: str) -> None:
         task (str): comma separated values in a string
     """
     username, title, description, start_date, due_date, complete = task.split(', ')
-    print('-' * 80)
-    print(f'''Task:\t\t{title}
-Assigned to:\t{username}
-Date assigned:\t{start_date}
-Due date:\t{due_date}
-Task Complete?\t{complete}
-Task Description:
- {description}''')
-    print('-' * 80)
+    print(display_formatter(t.TASK, title, username, start_date, due_date, complete, description))
 
 
 def print_statistics(tasks_amount: int, user_amount: int) -> None:
@@ -120,11 +127,7 @@ def print_statistics(tasks_amount: int, user_amount: int) -> None:
         tasks_amount (int): number of tasks
         user_amount (int): number of users
     """
-    print('-' * 80)
-    print(f'''*** Task Manager Statistics ***
-Total tasks:\t{tasks_amount}
-Total users:\t{user_amount}''')
-    print('-' * 80)
+    print(display_formatter(t.STATS, tasks_amount, user_amount))
 
 
 def login():
@@ -140,12 +143,12 @@ def login():
 
         try:
             if users[username_input] == password_input:
-                print(f'Welcome {username_input}')
+                print(display_formatter(t.CONFIRM_MESSAGE, f'Welcome {username_input}'))
                 return username_input
             else:
-                print('You have entered the incorrect password')
+                print(display_formatter(t.ERROR_MESSAGE, 'You have entered the incorrect password'))
         except KeyError:
-            print('Your username does not exist, please contact your admin')
+            print(display_formatter(t.ERROR_MESSAGE, 'Username does not exist, please contact your admin'))
 
 
 def register_user(user: str) -> None:
@@ -162,7 +165,7 @@ def register_user(user: str) -> None:
         username = input('Please enter the username you wish to register: ')
 
         if username in existing_users:
-            print('User already in use, please try another...')
+            print(display_formatter(t.ERROR_MESSAGE, 'User already in use, please try another...'))
         else:
             new_username = username
 
@@ -174,13 +177,13 @@ def register_user(user: str) -> None:
         if password == confirm_password:
             new_password = password
         else:
-            print('Your password\'s did not match, please try again')
+            print(display_formatter(t.ERROR_MESSAGE, 'Your password\'s did not match, please try again'))
 
     # format the new user to write to user.txt
     new_user = '{}, {}'.format(new_username, new_password)
     read_write('user.txt', new_user)
 
-    print(f'{new_username} has successfully been registered')
+    print(display_formatter(t.CONFIRM_MESSAGE, f'{new_username} has successfully been registered'))
 
 
 def view_statistics() -> None:
@@ -218,9 +221,9 @@ def add_task() -> None:
                                                    start_date,
                                                    due_date)
             read_write('tasks.txt', task)
-            return print(f'{title} has been added to {existing_user}\'s tasks')
+            return print(display_formatter(t.CONFIRM_MESSAGE, f'{title} has been added to {existing_user}\'s tasks'))
         else:
-            print(f'{existing_user} does not exist, please try again')
+            print(display_formatter(t.ERROR_MESSAGE, f'{existing_user} does not exist, please try again'))
 
 
 def view_tasks(user: str = None):
@@ -237,7 +240,7 @@ def view_tasks(user: str = None):
             for task in user_tasks:
                 print_task(task)
         except KeyError:
-            print("You currently have no tasks assigned to you")
+            print(display_formatter(t.ERROR_MESSAGE, "You currently have no tasks assigned to you"))
     else:
         all_tasks = tasks_raw.values()
         for tasks in all_tasks:
@@ -251,14 +254,10 @@ user = login()
 
 while True:
     # Menu output dependent on user
-    menu = input(f'''Select one of the following options:
-{'r - register a user' if user == 'admin' else ''}
-{'s - view statistics' if user == 'admin' else ''}
-a - add task
-va - view all tasks
-vm - view my tasks
-e - exit
-: ''').lower()
+    if user == 'admin':
+        menu = input(display_formatter(t.MENU_ADMIN)).lower()
+    else:
+        menu = input(display_formatter(t.MENU_USER)).lower()
 
     if menu == 'r' and user == 'admin':
         register_user(user)
@@ -279,8 +278,8 @@ e - exit
         return_to_menu()
 
     elif menu == 'e':
-        print('Goodbye!!!')
+        print(display_formatter(t.CONFIRM_MESSAGE, 'Goodbye!!!'))
         exit()
 
     else:
-        print("You have entered an invalid input. Please try again")
+        print(display_formatter(t.ERROR_MESSAGE, "You have entered an invalid input. Please try again"))
